@@ -1,0 +1,32 @@
+version: '3'
+services:
+  # Sveltekit App
+  sveltekit-app:
+    image: oven/bun:latest
+    working_dir: /app
+    volumes:
+      - ./:/app
+    ports:
+      - "5173:5173"
+    command: bash -c "bun install && bun run dev"
+  
+  mysql:
+    image: mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: password 
+      MYSQL_DATABASE: menu_del_hogar
+      MYSQL_USER: chito
+      MYSQL_PASSWORD: password
+    ports:
+      - "3306:3306"
+  
+  meilisearch:
+    image: getmeili/meilisearch:latest
+    restart: always
+    ports:
+      - "7700:7700"
+      - "7701:7701"
+    environment:
+      MEILI_MASTER_KEY: 3MXPPfpkVjPm
+      MEILI_READ_ONLY_KEY: 3MXPPfpkVjPm
