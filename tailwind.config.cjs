@@ -2,7 +2,11 @@
 export default {
   content: ['./src/**/*.{html,js,svelte,ts}'],
   theme: {
-    extend: {},
+    extend: {
+      backgroundImage: {
+        'products': "url('src/lib/assets/images/products/vegetables.jpg')"
+      }
+    },
   },
   plugins: [],
 }

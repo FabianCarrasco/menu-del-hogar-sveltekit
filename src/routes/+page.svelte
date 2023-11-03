@@ -1,5 +1,4 @@
-<script lang="ts">
-    
+<script lang="ts">    
 </script>
 
 <h1 class="text-3xl text-black">Welcome to Menu Del Hogar</h1>

@@ -2,6 +2,7 @@
     import { trpc } from '$lib/trpc/client'
     import type { SearchRequest } from '$lib/types/Meilisearch/SearchRequest';
     import type { FoodKeeperProducts } from '$lib/types/FoodKeeper';
+    import vegetables from '$lib/assets/images/products/vegetables.png'
 
     let greeting = 'press the button to load data'
     let loading = false
@@ -13,6 +14,7 @@
         loading = true
         products = await trpc().products.query(request)
         request = {}
+        console.log(products)
         loading = false
     }
 </script>
@@ -29,5 +31,6 @@
     {/each}
 
     <p>{greeting}</p>
+    
 </div>
 

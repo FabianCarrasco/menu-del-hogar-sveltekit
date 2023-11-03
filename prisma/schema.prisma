@@ -54,7 +54,7 @@ model CookingTips {
   id Int @id
   product_id Int @unique
   product Product? @relation(fields: [product_id], references: [id])
-  tips String
+  tips String?
   safe_minimum_temperature Int?
   rest_time Int?
   rest_time_metric String?
@@ -65,12 +65,12 @@ model CookingMethods {
   product_id Int @unique
   product Product? @relation(fields: [product_id], references: [id])
   cooking_method String
-  measure_from Int
-  measure_to Int
-  size_metric String
-  cooking_temperature Int
-  timing_from Int
-  timing_to Int
-  timing_metric String
-  timing_per String
+  measure_from Int?
+  measure_to Int?
+  size_metric String?
+  cooking_temperature Int?
+  timing_from Int?
+  timing_to Int? 
+  timing_metric String?
+  timing_per String?
 }

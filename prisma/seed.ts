@@ -1,4 +1,4 @@
-import { FoodKeeper } from "./FoodKeeper";
+import {FoodKeeper} from "../src/lib/types/FoodKeeper"
 import {Prisma, PrismaClient} from '@prisma/client'
 
 const getData = async () => {
@@ -12,10 +12,63 @@ const fetchAndAssignData = async () => {
 
     try {
         data = await getData()
-        // await populateCategory(data)
+        await populateCategory(data)
         await populateDatabase(data)
     } catch (error) {
         console.log('Error fetching data: ', error)
+    }
+}
+
+const populateCookingTips = async (foodKeeper: FoodKeeper) => {
+    const prisma = new PrismaClient()
+
+    try {
+        await prisma.$connect()
+        foodKeeper.sheets[3].data.forEach(async (cookingTip, i) => {
+
+            const record = await prisma.cookingTips.create({
+                data: {
+                    id: cookingTip[0].ID,
+                    product_id: cookingTip[1].Product_ID,
+                    tips: cookingTip[2]?.Tips || null,
+                    safe_minimum_temperature: cookingTip[3]?.Safe_Minimum_Temperature || null,
+                    rest_time: cookingTip[4]?.Rest_Time || null,
+                    rest_time_metric: cookingTip[5]?.Rest_Time_Metric || null,
+                }
+            })
+
+            console.log('Cooking tip created: ', record.product_id)
+        })
+    } catch (error) {
+        console.log('Error: ', error)
+    } finally {
+        await prisma.$disconnect()
+    }
+}
+
+const populateCookingMethods = async (foodKeeper: FoodKeeper) => {
+    const prisma = new PrismaClient()
+
+    try {
+        await prisma.$connect()
+        foodKeeper.sheets[4].data.forEach(async (cookingMethod, i) => {
+
+            const record = await prisma.cookingMethods.create({
+                data: {
+                    id: cookingMethod[0].ID,
+                    product_id: cookingMethod[1].Product_ID,
+                    cooking_method: cookingMethod[2].Cooking_Method,
+                    measure_from: cookingMethod[3]?.Measure_from || null,
+                    measure_to: cookingMethod[4]?.Measure_to || null,
+                    size_metric: cookingMethod[5]?.Size_metric || null,
+                    cooking_temperature: cookingMethod[6]?.Cooking_Temperature || null,
+                    timing_from: cookingMethod[7]?.Timing_from || null,
+                    timing_to: cookingMethod[8]?.Timing_to || null,
+                    timing_metric: cookingMethod[9]?.Timing_metric || null,
+                    timing_per: cookingMethod[10]?.Timing_per || null
+                }
+            })
+        })
     }
 }
 
@@ -76,10 +129,10 @@ const populateDatabase = async (foodKeeper: FoodKeeper) => {
                     refrigerate_after_thawing_min: product[27]?.Refrigerate_After_Thawing_Min || null,
                     refrigerate_after_thawing_max: product[28]?.Refrigerate_After_Thawing_Max || null,
                     refrigerate_after_thawing_metric: product[29]?.Refrigerate_After_Thawing_Metric || null,
-                    freeze_min: product[30]?.Freeze_Min || null,
-                    freeze_max: product[31]?.Freeze_Max || null,
-                    freeze_metric: product[32]?.Freeze_Metric || null,
-                    freeze_tips: product[33]?.Freeze_Tips || null,
+                    freeze_min: (product[30]?.Freeze_Min || product[34]?.DOP_Freeze_Min) || null,
+                    freeze_max: (product[31]?.Freeze_Max || product[35]?.DOP_Freeze_Max) || null,
+                    freeze_metric: (product[32]?.Freeze_Metric || product[36]?.DOP_Freeze_Metric) || null,
+                    freeze_tips: (product[33]?.Freeze_Tips || product[37]?.DOP_Freeze_Tips) || null,
 
                     category: {
                         connect: {
