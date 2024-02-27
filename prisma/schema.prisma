@@ -23,7 +23,7 @@ model Product {
   category_id Int
   category Category @relation(fields: [category_id], references: [id])
   cookingtips CookingTips?
-  cookingMethods CookingMethods?
+  cookingMethods CookingMethods[]
   name String
   name_subtitle String?
   keywords String? @db.VarChar(1000)
@@ -54,7 +54,7 @@ model CookingTips {
   id Int @id
   product_id Int @unique
   product Product? @relation(fields: [product_id], references: [id])
-  tips String?
+  tips String? @db.VarChar(500)
   safe_minimum_temperature Int?
   rest_time Int?
   rest_time_metric String?
@@ -62,13 +62,13 @@ model CookingTips {
 
 model CookingMethods {
   id Int @id
-  product_id Int @unique
+  product_id Int
   product Product? @relation(fields: [product_id], references: [id])
   cooking_method String
   measure_from Int?
   measure_to Int?
   size_metric String?
-  cooking_temperature Int?
+  cooking_temperature String?
   timing_from Int?
   timing_to Int? 
   timing_metric String?

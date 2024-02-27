@@ -1,3 +1,4 @@
+import { Console } from "console"
 import {FoodKeeper} from "../src/lib/types/FoodKeeper"
 import {Prisma, PrismaClient} from '@prisma/client'
 
@@ -12,35 +13,67 @@ const fetchAndAssignData = async () => {
 
     try {
         data = await getData()
+        
         await populateCategory(data)
+            .catch((error) => {
+                console.error("Unhandled error: ", error)
+            })
         await populateDatabase(data)
+            .catch((error) => {
+                console.error("Unhandled error: ", error)
+            })
+        await populateCookingTips(data)
+            .catch((error) => {
+                console.error("Unhandled error: ", error)
+            })
+        await populateCookingMethods(data)
+            .catch((error) => {
+                console.error("Unhandled error: ", error)
+            })
     } catch (error) {
-        console.log('Error fetching data: ', error)
+        console.log('\nError fetching data: ', error)
     }
 }
 
 const populateCookingTips = async (foodKeeper: FoodKeeper) => {
     const prisma = new PrismaClient()
 
+    const productIDs = new Set(foodKeeper.sheets[2].data.map(product => product[0].ID))
+    const nonExistentProductData = foodKeeper.sheets[3].data.filter(tip => !productIDs.has(tip[1].Product_ID))
+
     try {
         await prisma.$connect()
-        foodKeeper.sheets[3].data.forEach(async (cookingTip, i) => {
+        // foodKeeper.sheets[3].data.forEach(async (cookingTip, i) => {
+        for (const cookingTip of foodKeeper.sheets[3].data) {
+
+            const existsInNonExistant = nonExistentProductData.some(dataItem => dataItem[0].ID === cookingTip[0].ID)
+
+            if(existsInNonExistant) {
+                continue;
+            } else {
+                console.log(existsInNonExistant)
+            }
 
             const record = await prisma.cookingTips.create({
                 data: {
                     id: cookingTip[0].ID,
-                    product_id: cookingTip[1].Product_ID,
                     tips: cookingTip[2]?.Tips || null,
                     safe_minimum_temperature: cookingTip[3]?.Safe_Minimum_Temperature || null,
                     rest_time: cookingTip[4]?.Rest_Time || null,
                     rest_time_metric: cookingTip[5]?.Rest_Time_Metric || null,
+
+                    product: {
+                        connect: {
+                            id: cookingTip[1].Product_ID
+                        }
+                    }
                 }
             })
 
             console.log('Cooking tip created: ', record.product_id)
-        })
+        }
     } catch (error) {
-        console.log('Error: ', error)
+        console.log('\nError: ', error)
     } finally {
         await prisma.$disconnect()
     }
@@ -56,19 +89,39 @@ const populateCookingMethods = async (foodKeeper: FoodKeeper) => {
             const record = await prisma.cookingMethods.create({
                 data: {
                     id: cookingMethod[0].ID,
-                    product_id: cookingMethod[1].Product_ID,
                     cooking_method: cookingMethod[2].Cooking_Method,
                     measure_from: cookingMethod[3]?.Measure_from || null,
                     measure_to: cookingMethod[4]?.Measure_to || null,
                     size_metric: cookingMethod[5]?.Size_metric || null,
-                    cooking_temperature: cookingMethod[6]?.Cooking_Temperature || null,
+                    cooking_temperature: 
+                        (
+                            typeof cookingMethod[6]?.Cooking_Temperature == 'number' ?
+                                cookingMethod[6]?.Cooking_Temperature.toString() :
+                                cookingMethod[6]?.Cooking_Temperature
+                        ) || null,
                     timing_from: cookingMethod[7]?.Timing_from || null,
                     timing_to: cookingMethod[8]?.Timing_to || null,
                     timing_metric: cookingMethod[9]?.Timing_metric || null,
-                    timing_per: cookingMethod[10]?.Timing_per || null
+                    timing_per: cookingMethod[10]?.Timing_per || null,
+
+                    product: {
+                        connect: {
+                            id: cookingMethod[1].Product_ID
+                        }
+                    }
                 }
             })
+
+            console.log('Cooking method created: ', record.product_id)
         })
+    } catch (error) {
+        console.error('\nError: ', error.message)
+
+        if(error.code === 'P2025') {
+            console.error('The problematic value: ', error.meta.target)
+        }
+    } finally {
+        await prisma.$disconnect()
     }
 }
 
@@ -90,7 +143,7 @@ const populateCategory = async (foodKeeper: FoodKeeper) => {
             console.log('Category created: ', record.category_name)
         })
     } catch (error) {
-        console.log('Error: ', error)
+        console.log('\nError: ', error)
     } finally {
         await prisma.$disconnect()
     }
@@ -145,8 +198,8 @@ const populateDatabase = async (foodKeeper: FoodKeeper) => {
             console.log('Product created: ', record.name, ' ', record.id)
         })
     } catch (error) {
-        console.error('Error: ', error)
-        console.log('ERROR ', error)
+        console.error('\nError: ', error)
+        console.log('\nERROR ', error)
     } finally {
         await prisma.$disconnect()
     }
